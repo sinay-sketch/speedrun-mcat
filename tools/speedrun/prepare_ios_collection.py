@@ -10,6 +10,7 @@ import shutil
 
 from anki.collection import Collection
 from anki import import_export_pb2 as ie
+from anki import deck_config_pb2 as dcpb
 
 APKG = os.path.abspath("mcat_starter.apkg")
 OUT_DIR = os.path.abspath("ios/SpeedrunMCAT/Resources")
@@ -36,6 +37,19 @@ def main() -> None:
     conf["new"]["perDay"] = 200
     conf["rev"]["perDay"] = 500
     col.decks.save(conf)
+    # Enable FSRS — it is the memory engine the Memory score is built on. Without
+    # it, cards never get an FSRS memory state and the score can only ever abstain.
+    gather = col.decks.get_deck_configs_for_update(did)
+    col.decks.update_deck_configs(
+        dcpb.UpdateDeckConfigsRequest(
+            target_deck_id=did,
+            configs=[cwe.config for cwe in gather.all_config],
+            removed_config_ids=[],
+            mode=dcpb.UpdateDeckConfigsMode.UPDATE_DECK_CONFIGS_MODE_NORMAL,
+            fsrs=True,
+            fsrs_reschedule=True,
+        )
+    )
     col.close()
 
     with open(os.path.join(OUT_DIR, "deck_id.txt"), "w") as f:
