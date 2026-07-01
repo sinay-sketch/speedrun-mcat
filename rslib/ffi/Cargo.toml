@@ -1,0 +1,20 @@
+[package]
+name = "anki-ffi"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+rust-version.workspace = true
+description = "Speedrun (MCAT): C FFI over Anki's Rust engine, for the iOS companion app"
+
+[lib]
+name = "anki_ffi"
+crate-type = ["staticlib", "cdylib"]
+path = "src/lib.rs"
+test = false
+
+# rustls (pure-Rust TLS) so `anki` compiles for iOS without linking system TLS.
+[dependencies]
+anki = { workspace = true, features = ["rustls"] }
+serde_json.workspace = true
