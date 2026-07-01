@@ -1448,6 +1448,11 @@ title="{}" {}>{}</button>""".format(
         qconnect(m.action_check_for_updates.triggered, self.on_check_for_updates)
         qconnect(m.actionPreferences.triggered, self.onPrefs)
 
+        # Speedrun (MCAT): honest Memory score for the current deck.
+        import aqt.speedrun
+
+        aqt.speedrun.add_memory_score_action(self)
+
         # View
         qconnect(
             m.actionZoomIn.triggered,

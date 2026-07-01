@@ -23,6 +23,9 @@ service SchedulerService {
   rpc UpdateStats(UpdateStatsRequest) returns (generic.Empty);
   rpc ExtendLimits(ExtendLimitsRequest) returns (generic.Empty);
   rpc CountsForDeckToday(decks.DeckId) returns (CountsForDeckTodayResponse);
+  // Speedrun (MCAT): read-only aggregate "Memory score" for a deck and its
+  // children, derived from per-card FSRS retrievability.
+  rpc MasteryForDeck(decks.DeckId) returns (MasteryForDeckResponse);
   rpc CongratsInfo(generic.Empty) returns (CongratsInfoResponse);
   rpc RestoreBuriedAndSuspendedCards(cards.CardIds)
       returns (collection.OpChanges);
@@ -181,6 +184,23 @@ message ExtendLimitsRequest {
 message CountsForDeckTodayResponse {
   int32 new = 1;
   int32 review = 2;
+}
+
+// Speedrun (MCAT): an honest, aggregated Memory score for a deck.
+message MasteryForDeckResponse {
+  // Point estimate: mean predicted probability of recall across counted cards.
+  float mean_retrievability = 1;
+  // 95% band (Poisson-binomial normal approximation), clamped to [0, 1].
+  float lower = 2;
+  float upper = 3;
+  // Cards with an FSRS memory state (denominator; drives the give-up rule).
+  uint32 cards_counted = 4;
+  // Total cards in the deck and its children.
+  uint32 cards_total = 5;
+  // Cards with interval >= 21 days.
+  uint32 mature = 6;
+  // False when cards_counted is below the minimum for an honest estimate.
+  bool sufficient_data = 7;
 }
 
 message CongratsInfoResponse {

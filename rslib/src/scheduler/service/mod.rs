@@ -82,6 +82,24 @@ impl crate::services::SchedulerService for Collection {
         self.counts_for_deck_today(input.did.into())
     }
 
+    /// Speedrun (MCAT): aggregate FSRS retrievability across a deck into an
+    /// honest Memory score (point estimate + 95% band + give-up flag).
+    fn mastery_for_deck(
+        &mut self,
+        input: anki_proto::decks::DeckId,
+    ) -> Result<scheduler::MasteryForDeckResponse> {
+        let m = self.mastery_for_deck(input.did.into())?;
+        Ok(scheduler::MasteryForDeckResponse {
+            mean_retrievability: m.mean_retrievability,
+            lower: m.lower,
+            upper: m.upper,
+            cards_counted: m.cards_counted,
+            cards_total: m.cards_total,
+            mature: m.mature,
+            sufficient_data: m.sufficient_data,
+        })
+    }
+
     fn congrats_info(&mut self) -> Result<scheduler::CongratsInfoResponse> {
         self.congrats_info()
     }
