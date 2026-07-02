@@ -11,6 +11,9 @@ typedef struct Collection Collection;
 // Open (or create) a collection at `path`. Free with speedrun_close. NULL on error.
 Collection *speedrun_open(const char *path);
 
+// Resolve a deck id by its human name (e.g. "MCAT::Speedrun Starter"), or -1.
+int64_t speedrun_deck_id(Collection *col, const char *name);
+
 // JSON for the next due card: {"card_id":N,"question":"..","answer":".."} or {}.
 // Caller must free with speedrun_free_string.
 char *speedrun_next_card(Collection *col);

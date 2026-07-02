@@ -48,6 +48,29 @@ pub unsafe extern "C" fn speedrun_open(path: *const c_char) -> *mut Collection {
     }
 }
 
+/// Resolve a deck id by its human name (e.g. "MCAT::Speedrun Starter") in the
+/// open collection. Returns the id, or -1 if not found. Lets the app avoid a
+/// hard-coded deck id, so it works against whatever collection is loaded.
+///
+/// # Safety
+/// `col` must be a pointer from [`speedrun_open`]; `name` a valid C string.
+#[no_mangle]
+pub unsafe extern "C" fn speedrun_deck_id(col: *mut Collection, name: *const c_char) -> i64 {
+    let Some(col) = col.as_mut() else {
+        return -1;
+    };
+    if name.is_null() {
+        return -1;
+    }
+    let Ok(name) = CStr::from_ptr(name).to_str() else {
+        return -1;
+    };
+    match col.get_deck_id(name) {
+        Ok(Some(did)) => did.0,
+        _ => -1,
+    }
+}
+
 /// Return JSON for the next due card:
 /// `{"card_id":N,"question":"…","answer":"…"}`, or `{}` when nothing is due.
 /// Free the result with [`speedrun_free_string`].

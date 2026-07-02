@@ -13,9 +13,11 @@ import Foundation
 
 // MARK: - Shared-engine wrapper over the C ABI
 
+let DECK_NAME = "MCAT::Speedrun Starter"
+
 final class AnkiEngine: ObservableObject {
     private var col: OpaquePointer?
-    private let deckId: Int64
+    private var deckId: Int64 = -1
 
     // Deck / Memory summary (lifetime, from the shared engine).
     @Published var cardsTotal = 0
@@ -34,20 +36,15 @@ final class AnkiEngine: ObservableObject {
     @Published var noneDue = false
 
     init() {
-        deckId = AnkiEngine.bundledDeckID()
         openBundledCollection()
+        if let col {
+            // Resolve the deck id by name from whatever collection is loaded —
+            // robust to deck ids differing between builds / persisted data.
+            deckId = DECK_NAME.withCString { speedrun_deck_id(col, $0) }
+        }
         refreshSummary()
     }
     deinit { if let col { speedrun_close(col) } }
-
-    private static func bundledDeckID() -> Int64 {
-        if let url = Bundle.main.url(forResource: "deck_id", withExtension: "txt"),
-           let s = try? String(contentsOf: url, encoding: .utf8),
-           let id = Int64(s.trimmingCharacters(in: .whitespacesAndNewlines)) {
-            return id
-        }
-        return 1
-    }
 
     private func openBundledCollection() {
         guard let src = Bundle.main.url(forResource: "collection", withExtension: "anki2") else { return }
@@ -148,18 +145,21 @@ struct HomeView: View {
                 .padding(20).frame(maxWidth: .infinity)
                 .background(.thinMaterial).clipShape(RoundedRectangle(cornerRadius: 16))
 
-                // Deck row
-                HStack {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("MCAT · Speedrun Starter").font(.body.weight(.semibold))
-                        Text("\(engine.cardsTotal) cards · shared Rust engine")
-                            .font(.caption).foregroundStyle(.secondary)
+                // Deck row — tappable, opens the study session (like Anki's deck list)
+                NavigationLink { StudyView() } label: {
+                    HStack {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("MCAT · Speedrun Starter").font(.body.weight(.semibold))
+                            Text("\(engine.cardsTotal) cards · shared Rust engine")
+                                .font(.caption).foregroundStyle(.secondary)
+                        }
+                        Spacer()
+                        Image(systemName: "chevron.right").foregroundStyle(.tertiary)
                     }
-                    Spacer()
-                    Image(systemName: "chevron.right").foregroundStyle(.tertiary)
+                    .padding(16)
+                    .background(Color(.secondarySystemBackground)).clipShape(RoundedRectangle(cornerRadius: 12))
                 }
-                .padding(16)
-                .background(Color(.secondarySystemBackground)).clipShape(RoundedRectangle(cornerRadius: 12))
+                .buttonStyle(.plain)
 
                 NavigationLink { StudyView() } label: {
                     Text("Study").frame(maxWidth: .infinity)
