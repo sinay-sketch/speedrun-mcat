@@ -1,10 +1,12 @@
 // Speedrun (MCAT) iOS companion.
 // License: GNU AGPL, version 3 or later.
 //
-// A minimal SwiftUI app that runs a real review session on the SAME Anki Rust
-// engine as the desktop app, via the anki-ffi C ABI. It bundles a prebuilt
-// MCAT collection, opens it through the shared engine, renders/answers cards,
-// and shows the honest Memory score (MasteryForDeck) with its give-up rule.
+// Minimal two-screen companion that runs a real review session on the SAME
+// Anki Rust engine as the desktop app (via the anki-ffi C ABI):
+//   Home  → deck + honest Memory score (MasteryForDeck) + Study button
+//   Study → review the due cards, with a Back button
+// The heavy lifting (scheduling, FSRS, rendering, the MasteryForDeck query)
+// lives in rslib and is reused verbatim; Swift only owns the UI.
 
 import SwiftUI
 import Foundation
@@ -15,21 +17,27 @@ final class AnkiEngine: ObservableObject {
     private var col: OpaquePointer?
     private let deckId: Int64
 
+    // Deck / Memory summary (lifetime, from the shared engine).
+    @Published var cardsTotal = 0
+    @Published var cardsTracked = 0          // cards with an FSRS memory state
+    @Published var sufficient = false
+    @Published var memoryPct = 0.0
+    @Published var lowerPct = 0.0
+    @Published var upperPct = 0.0
+
+    // Current study session.
     @Published var cardID: Int64 = 0
-    @Published var question: String = ""
-    @Published var answer: String = ""
+    @Published var question = ""
+    @Published var answer = ""
     @Published var showingAnswer = false
-    @Published var finished = false
-    @Published var reviewed = 0
-    @Published var memoryLine: String = "…"
+    @Published var sessionReviewed = 0       // this session only
+    @Published var noneDue = false
 
     init() {
-        self.deckId = AnkiEngine.bundledDeckID()
+        deckId = AnkiEngine.bundledDeckID()
         openBundledCollection()
-        loadNext()
-        refreshMemory()
+        refreshSummary()
     }
-
     deinit { if let col { speedrun_close(col) } }
 
     private static func bundledDeckID() -> Int64 {
@@ -41,11 +49,8 @@ final class AnkiEngine: ObservableObject {
         return 1
     }
 
-    // The app bundle is read-only; copy the collection to Documents to open r/w.
     private func openBundledCollection() {
-        guard let src = Bundle.main.url(forResource: "collection", withExtension: "anki2") else {
-            memoryLine = "bundled collection missing"; return
-        }
+        guard let src = Bundle.main.url(forResource: "collection", withExtension: "anki2") else { return }
         let docs = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
         let dst = docs.appendingPathComponent("collection.anki2")
         if !FileManager.default.fileExists(atPath: dst.path) {
@@ -60,79 +65,143 @@ final class AnkiEngine: ObservableObject {
         return String(cString: ptr)
     }
 
+    /// Refresh the deck/Memory summary from the shared engine.
+    func refreshSummary() {
+        guard let col else { return }
+        let json = takeString(speedrun_mastery(col, deckId))
+        guard let data = json.data(using: .utf8),
+              let m = try? JSONSerialization.jsonObject(with: data) as? [String: Any]
+        else { return }
+        cardsTotal = (m["cards_total"] as? Int) ?? 0
+        cardsTracked = (m["cards_counted"] as? Int) ?? 0
+        sufficient = (m["sufficient_data"] as? Bool) ?? false
+        memoryPct = ((m["mean_retrievability"] as? Double) ?? 0) * 100
+        lowerPct = ((m["lower"] as? Double) ?? 0) * 100
+        upperPct = ((m["upper"] as? Double) ?? 0) * 100
+    }
+
+    func startSession() {
+        sessionReviewed = 0
+        noneDue = false
+        loadNext()
+    }
+
     func loadNext() {
-        guard let col else { finished = true; return }
-        let json = takeString(speedrun_next_card(col))
         showingAnswer = false
-        guard
-            let data = json.data(using: .utf8),
-            let obj = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-            let cid = obj["card_id"] as? Int64 ?? (obj["card_id"] as? Int).map(Int64.init)
-        else {
-            finished = true; question = ""; answer = ""; return
+        guard let col else { noneDue = true; return }
+        let json = takeString(speedrun_next_card(col))
+        if let data = json.data(using: .utf8),
+           let obj = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+           let cid = (obj["card_id"] as? Int).map(Int64.init) {
+            cardID = cid
+            question = (obj["question"] as? String) ?? ""
+            answer = (obj["answer"] as? String) ?? ""
+            noneDue = false
+        } else {
+            noneDue = true
         }
-        cardID = cid
-        question = (obj["question"] as? String) ?? ""
-        answer = (obj["answer"] as? String) ?? ""
     }
 
     func answer(_ rating: UInt32) {
         guard let col else { return }
-        if speedrun_answer(col, cardID, rating) == 0 { reviewed += 1 }
-        refreshMemory()
+        if speedrun_answer(col, cardID, rating) == 0 { sessionReviewed += 1 }
+        refreshSummary()
         loadNext()
     }
+}
 
-    func refreshMemory() {
-        guard let col else { return }
-        let json = takeString(speedrun_mastery(col, deckId))
-        guard
-            let data = json.data(using: .utf8),
-            let m = try? JSONSerialization.jsonObject(with: data) as? [String: Any]
-        else { memoryLine = "—"; return }
-        let counted = (m["cards_counted"] as? Int) ?? 0
-        let total = (m["cards_total"] as? Int) ?? 0
-        let sufficient = (m["sufficient_data"] as? Bool) ?? false
-        if sufficient {
-            let mean = ((m["mean_retrievability"] as? Double) ?? 0) * 100
-            let lo = ((m["lower"] as? Double) ?? 0) * 100
-            let hi = ((m["upper"] as? Double) ?? 0) * 100
-            memoryLine = String(format: "Memory: %.0f%% (95%% %.0f–%.0f%%) · %d/%d cards",
-                                mean, lo, hi, counted, total)
-        } else {
-            memoryLine = "Memory: not enough data yet (\(counted)/\(total) cards) — study more"
+// MARK: - Helpers
+
+private func stripHTML(_ s: String) -> String {
+    s.replacingOccurrences(of: "<[^>]+>", with: " ", options: .regularExpression)
+        .replacingOccurrences(of: "&nbsp;", with: " ")
+        .trimmingCharacters(in: .whitespacesAndNewlines)
+}
+
+// MARK: - Home
+
+struct HomeView: View {
+    @EnvironmentObject var engine: AnkiEngine
+
+    var body: some View {
+        NavigationStack {
+            VStack(spacing: 18) {
+                // Memory score card — clearly labelled so it isn't confused
+                // with "reviewed this session".
+                VStack(spacing: 6) {
+                    Text("MEMORY").font(.caption2).tracking(1).foregroundStyle(.secondary)
+                    if engine.sufficient {
+                        Text("\(Int(engine.memoryPct.rounded()))%")
+                            .font(.system(size: 46, weight: .bold, design: .rounded))
+                        Text("95% range \(Int(engine.lowerPct.rounded()))–\(Int(engine.upperPct.rounded()))%")
+                            .font(.subheadline)
+                        Text("across \(engine.cardsTracked) of \(engine.cardsTotal) cards with review history")
+                            .font(.caption2).foregroundStyle(.secondary)
+                            .multilineTextAlignment(.center)
+                    } else {
+                        Text("Not enough data yet").font(.title3.weight(.semibold))
+                        Text("\(engine.cardsTracked) of \(engine.cardsTotal) cards have review history — study more, then check back")
+                            .font(.caption).foregroundStyle(.secondary)
+                            .multilineTextAlignment(.center)
+                    }
+                }
+                .padding(20).frame(maxWidth: .infinity)
+                .background(.thinMaterial).clipShape(RoundedRectangle(cornerRadius: 16))
+
+                // Deck row
+                HStack {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("MCAT · Speedrun Starter").font(.body.weight(.semibold))
+                        Text("\(engine.cardsTotal) cards · shared Rust engine")
+                            .font(.caption).foregroundStyle(.secondary)
+                    }
+                    Spacer()
+                    Image(systemName: "chevron.right").foregroundStyle(.tertiary)
+                }
+                .padding(16)
+                .background(Color(.secondarySystemBackground)).clipShape(RoundedRectangle(cornerRadius: 12))
+
+                NavigationLink { StudyView() } label: {
+                    Text("Study").frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.borderedProminent).controlSize(.large)
+
+                Spacer()
+            }
+            .padding()
+            .navigationTitle("Speedrun · MCAT")
+            .navigationBarTitleDisplayMode(.inline)
+            .onAppear { engine.refreshSummary() }
         }
     }
 }
 
-// MARK: - UI
+// MARK: - Study
 
-private func stripHTML(_ s: String) -> String {
-    s.replacingOccurrences(of: "<[^>]+>", with: " ", options: .regularExpression)
-     .replacingOccurrences(of: "&nbsp;", with: " ")
-     .trimmingCharacters(in: .whitespacesAndNewlines)
-}
-
-struct ContentView: View {
-    @StateObject private var engine = AnkiEngine()
+struct StudyView: View {
+    @EnvironmentObject var engine: AnkiEngine
+    @Environment(\.dismiss) private var dismiss
 
     var body: some View {
         VStack(spacing: 20) {
-            Text("Speedrun · MCAT")
-                .font(.headline).foregroundStyle(.secondary)
-            Text(engine.memoryLine)
-                .font(.footnote).multilineTextAlignment(.center)
-                .padding(8).background(.thinMaterial).clipShape(RoundedRectangle(cornerRadius: 8))
-
-            Divider()
-
-            if engine.finished {
+            if engine.noneDue {
                 Spacer()
-                Text("All caught up 🎉").font(.title2)
-                Text("Reviewed \(engine.reviewed) cards this session on the shared Rust engine.")
-                    .font(.footnote).foregroundStyle(.secondary).multilineTextAlignment(.center)
+                Text("Nothing due right now 🎉").font(.title2)
+                if engine.sessionReviewed > 0 {
+                    Text("Reviewed \(engine.sessionReviewed) card\(engine.sessionReviewed == 1 ? "" : "s") this session on the shared Rust engine.")
+                        .font(.footnote).foregroundStyle(.secondary).multilineTextAlignment(.center)
+                } else {
+                    Text("You've reviewed all due cards. Come back when more are due.")
+                        .font(.footnote).foregroundStyle(.secondary).multilineTextAlignment(.center)
+                }
+                Button("Back to deck") { dismiss() }
+                    .buttonStyle(.bordered).controlSize(.large)
                 Spacer()
             } else {
+                if engine.sessionReviewed > 0 {
+                    Text("Reviewed \(engine.sessionReviewed) this session")
+                        .font(.caption).foregroundStyle(.secondary)
+                }
                 Spacer()
                 ScrollView {
                     Text(stripHTML(engine.question)).font(.title3).multilineTextAlignment(.center)
@@ -142,13 +211,10 @@ struct ContentView: View {
                     }
                 }.frame(maxWidth: .infinity)
                 Spacer()
-
                 if engine.showingAnswer {
                     HStack(spacing: 10) {
-                        gradeButton("Again", 1, .red)
-                        gradeButton("Hard", 2, .orange)
-                        gradeButton("Good", 3, .green)
-                        gradeButton("Easy", 4, .blue)
+                        grade("Again", 1, .red); grade("Hard", 2, .orange)
+                        grade("Good", 3, .green); grade("Easy", 4, .blue)
                     }
                 } else {
                     Button { engine.showingAnswer = true } label: {
@@ -158,9 +224,12 @@ struct ContentView: View {
             }
         }
         .padding()
+        .navigationTitle("Study")
+        .navigationBarTitleDisplayMode(.inline)
+        .onAppear { engine.startSession() }
     }
 
-    private func gradeButton(_ label: String, _ rating: UInt32, _ color: Color) -> some View {
+    private func grade(_ label: String, _ rating: UInt32, _ color: Color) -> some View {
         Button { engine.answer(rating) } label: {
             Text(label).frame(maxWidth: .infinity)
         }
@@ -170,7 +239,8 @@ struct ContentView: View {
 
 @main
 struct SpeedrunMCATApp: App {
+    @StateObject private var engine = AnkiEngine()
     var body: some Scene {
-        WindowGroup { ContentView() }
+        WindowGroup { HomeView().environmentObject(engine) }
     }
 }

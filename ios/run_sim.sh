@@ -13,7 +13,8 @@ fi
 
 # 2) Pick an installed iOS runtime and create/reuse a simulator device.
 RUNTIME=$(xcrun simctl list runtimes | awk -F' - ' '/iOS/{print $NF}' | tail -1)
-DEV_ID=$(xcrun simctl list devices | awk '/Speedrun-iPhone \(/{gsub(/[()]/,"");print $3; exit}')
+# Extract the 36-char UUID of an existing Speedrun-iPhone device, if any.
+DEV_ID=$(xcrun simctl list devices | grep "Speedrun-iPhone (" | grep -oE "[0-9A-Fa-f-]{36}" | head -1)
 if [ -z "$DEV_ID" ]; then
   DEVTYPE=$(xcrun simctl list devicetypes | awk -F'[()]' '/iPhone 1[5-7]( Pro)? \(/{print $2; exit}')
   DEV_ID=$(xcrun simctl create "Speedrun-iPhone" "$DEVTYPE" "$RUNTIME")
@@ -32,4 +33,4 @@ xcodebuild -project SpeedrunMCAT.xcodeproj -scheme SpeedrunMCAT \
 APP=$(find build/Build/Products/Debug-iphonesimulator -maxdepth 1 -name '*.app' | head -1)
 echo "installing $APP"
 xcrun simctl install "$DEV_ID" "$APP"
-xcrun simctl launch --console-pty "$DEV_ID" com.speedrun.mcat
+xcrun simctl launch "$DEV_ID" com.speedrun.mcat
