@@ -21,11 +21,99 @@ use anki::error::Result;
 use anki::prelude::*;
 use anki::scheduler::answering::CardAnswer;
 use anki::scheduler::answering::Rating;
+use anki::sync::collection::normal::SyncActionRequired;
+use anki::sync::login::sync_login;
 
 fn to_c_string(s: String) -> *mut c_char {
     CString::new(s)
         .map(CString::into_raw)
         .unwrap_or(ptr::null_mut())
+}
+
+/// Log in and sync the collection at `path` against a self-hosted sync server
+/// at `endpoint` (e.g. "http://127.0.0.1:8080/"), using the SAME Rust sync
+/// engine the desktop app uses. The caller must CLOSE any open handle to this
+/// collection first (this opens its own, then closes it).
+///
+/// Returns: 0 = normal sync done / already in sync, 1 = full upload done,
+/// 2 = full download done, -1 = error.
+///
+/// # Safety
+/// All pointers must be valid, NUL-terminated C strings.
+#[no_mangle]
+pub unsafe extern "C" fn speedrun_sync(
+    path: *const c_char,
+    endpoint: *const c_char,
+    username: *const c_char,
+    password: *const c_char,
+) -> i32 {
+    let s = |p: *const c_char| -> Option<String> {
+        (!p.is_null())
+            .then(|| CStr::from_ptr(p).to_str().ok().map(str::to_string))
+            .flatten()
+    };
+    match (s(path), s(endpoint), s(username), s(password)) {
+        (Some(path), Some(endpoint), Some(username), Some(password)) => {
+            match do_sync(&path, &endpoint, &username, &password) {
+                Ok(code) => code,
+                Err(_) => -1,
+            }
+        }
+        _ => -1,
+    }
+}
+
+fn do_sync(
+    path: &str,
+    endpoint: &str,
+    username: &str,
+    password: &str,
+) -> std::result::Result<i32, Box<dyn std::error::Error>> {
+    // The async sync methods need a Tokio runtime (a raw Collection has none).
+    let rt = tokio::runtime::Builder::new_multi_thread()
+        .worker_threads(1)
+        .enable_all()
+        .build()?;
+    // http1-only, matching what Anki's backend uses.
+    let client = reqwest::Client::builder().http1_only().build()?;
+    let base = if endpoint.ends_with('/') {
+        endpoint.to_string()
+    } else {
+        format!("{endpoint}/")
+    };
+
+    let mut col = CollectionBuilder::new(path).build()?;
+    let mut auth = rt.block_on(sync_login(
+        username.to_string(),
+        password.to_string(),
+        Some(base.clone()),
+        client.clone(),
+    ))?;
+    auth.endpoint = Some(reqwest::Url::parse(&base)?);
+
+    let out = rt.block_on(col.normal_sync(auth.clone(), client.clone()))?;
+    match out.required {
+        SyncActionRequired::NoChanges | SyncActionRequired::NormalSyncRequired => Ok(0),
+        SyncActionRequired::FullSyncRequired {
+            upload_ok,
+            download_ok,
+        } => {
+            // Prefer whichever direction is exclusively allowed (initial seed):
+            // server empty => upload; local empty => download.
+            if download_ok && !upload_ok {
+                rt.block_on(col.full_download(auth, client))?;
+                Ok(2)
+            } else if upload_ok {
+                rt.block_on(col.full_upload(auth, client))?;
+                Ok(1)
+            } else if download_ok {
+                rt.block_on(col.full_download(auth, client))?;
+                Ok(2)
+            } else {
+                Err("full sync required but neither direction allowed".into())
+            }
+        }
+    }
 }
 
 /// Open (or create) a collection at `path`. Returns a pointer owned by the
@@ -176,6 +264,96 @@ pub unsafe extern "C" fn speedrun_mastery(col: *mut Collection, did: i64) -> *mu
         Err(_) => "{}".into(),
     };
     to_c_string(json)
+}
+
+/// Return JSON for a deck's honest **Performance** score (online Elo over the
+/// review history): `{"mastery":f,"lower":f,"upper":f,"reviews":N,
+/// "sufficient_data":bool}`. Free with [`speedrun_free_string`].
+///
+/// # Safety
+/// `col` must be a pointer returned by [`speedrun_open`].
+#[no_mangle]
+pub unsafe extern "C" fn speedrun_performance(col: *mut Collection, did: i64) -> *mut c_char {
+    let Some(col) = col.as_mut() else {
+        return to_c_string("{}".into());
+    };
+    let json = match col.performance_for_deck(DeckId(did)) {
+        Ok(p) => serde_json::json!({
+            "mastery": p.mastery,
+            "lower": p.lower,
+            "upper": p.upper,
+            "reviews": p.reviews_counted,
+            "cards_reviewed": p.cards_reviewed,
+            "sufficient_data": p.sufficient_data,
+        })
+        .to_string(),
+        Err(_) => "{}".into(),
+    };
+    to_c_string(json)
+}
+
+/// Return JSON for a deck's honest **Readiness** score (provisional MCAT scaled
+/// score, 472–528): `{"scaled":N,"lower":N,"upper":N,"confident":bool,
+/// "sufficient_data":bool}`. Free with [`speedrun_free_string`].
+///
+/// # Safety
+/// `col` must be a pointer returned by [`speedrun_open`].
+#[no_mangle]
+pub unsafe extern "C" fn speedrun_readiness(col: *mut Collection, did: i64) -> *mut c_char {
+    let Some(col) = col.as_mut() else {
+        return to_c_string("{}".into());
+    };
+    let json = match col.readiness_for_deck(DeckId(did)) {
+        Ok(r) => serde_json::json!({
+            "scaled": r.scaled_score,
+            "lower": r.lower,
+            "upper": r.upper,
+            "confident": r.confident,
+            "sufficient_data": r.sufficient_data,
+        })
+        .to_string(),
+        Err(_) => "{}".into(),
+    };
+    to_c_string(json)
+}
+
+/// Return JSON with a deck's study-queue counts: `{"new":N,"learn":N,"due":N,
+/// "total":N}`. These come from `Collection::deck_tree` — the SAME engine call
+/// the desktop deck list uses (daily limits applied) — so the phone shows the
+/// exact same New / Learn / Due numbers as the desktop. Free with
+/// [`speedrun_free_string`].
+///
+/// # Safety
+/// `col` must be a pointer returned by [`speedrun_open`].
+#[no_mangle]
+pub unsafe extern "C" fn speedrun_deck_counts(col: *mut Collection, did: i64) -> *mut c_char {
+    let Some(col) = col.as_mut() else {
+        return to_c_string("{}".into());
+    };
+    to_c_string(deck_counts_json(col, DeckId(did)).unwrap_or_else(|_| "{}".into()))
+}
+
+fn deck_counts_json(col: &mut Collection, did: DeckId) -> Result<String> {
+    use anki_proto::decks::DeckTreeNode;
+    // Recursively locate this deck's node in the due tree.
+    fn find<'a>(node: &'a DeckTreeNode, did: i64) -> Option<&'a DeckTreeNode> {
+        if node.deck_id == did {
+            return Some(node);
+        }
+        node.children.iter().find_map(|c| find(c, did))
+    }
+    let tree = col.deck_tree(Some(TimestampSecs::now()))?;
+    let (new, learn, due, total) = match find(&tree, did.0) {
+        Some(n) => (n.new_count, n.learn_count, n.review_count, n.total_in_deck),
+        None => (0, 0, 0, 0),
+    };
+    Ok(serde_json::json!({
+        "new": new,
+        "learn": learn,
+        "due": due,
+        "total": total,
+    })
+    .to_string())
 }
 
 /// Free a string returned by this library.

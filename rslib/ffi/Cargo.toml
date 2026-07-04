@@ -17,4 +17,7 @@ test = false
 # rustls (pure-Rust TLS) so `anki` compiles for iOS without linking system TLS.
 [dependencies]
 anki = { workspace = true, features = ["rustls"] }
+anki_proto.workspace = true
 serde_json.workspace = true
+tokio.workspace = true
+reqwest.workspace = true
