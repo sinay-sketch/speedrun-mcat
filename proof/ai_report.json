@@ -1,0 +1,35 @@
+{
+  "has_key": false,
+  "gen_model": "gpt-4o-mini",
+  "judge_model": "gpt-4o",
+  "retrieval": {
+    "BM25 (lexical baseline)": {
+      "nDCG@10": 0.7229484916597555,
+      "Recall@1": 0.56,
+      "Recall@3": 0.72,
+      "Recall@5": 0.76,
+      "MRR": 0.6656935960591133
+    },
+    "Vector (TF-IDF cosine)": {
+      "nDCG@10": 0.7309283251531682,
+      "Recall@1": 0.56,
+      "Recall@3": 0.72,
+      "Recall@5": 0.8,
+      "MRR": 0.6758626262626263
+    },
+    "Hybrid RRF (BM25+TF-IDF)": {
+      "nDCG@10": 0.7229729608093917,
+      "Recall@1": 0.56,
+      "Recall@3": 0.72,
+      "Recall@5": 0.76,
+      "MRR": 0.6660549487161181
+    }
+  },
+  "injection_structural_ok": true,
+  "entailment_offline": {
+    "kept": 40,
+    "n": 50,
+    "rate": 0.8
+  },
+  "ai_off_deck_cards": 50
+}

@@ -1,0 +1,43 @@
+=== Speedrun AI harness — offline (no-key) run ===
+Run: 2026-07-03 12:55:44
+Command: python tools/speedrun/ai/run_harness.py
+
+
+========================================================================
+1. Retrieval: beat a simpler baseline
+========================================================================
+Retrieval over 30 source chunks, 25 held-out queries:
+
+method                           nDCG@10  Recall@1  Recall@3  Recall@5       MRR
+--------------------------------------------------------------------------------
+BM25 (lexical baseline)            0.723     0.560     0.720     0.760     0.666
+Vector (TF-IDF cosine)             0.731     0.560     0.720     0.800     0.676
+Hybrid RRF (BM25+TF-IDF)           0.723     0.560     0.720     0.760     0.666
+
+Best: Vector (TF-IDF cosine) nDCG@10=0.731 vs BM25 0.723 (+0.008, +1.1%).
+
+========================================================================
+2. Prompt-injection defense (spotlighting / datamarking)
+========================================================================
+datamarking wrapper applied: True
+4 attack templates staged for the red-team.
+
+========================================================================
+3. Source-entailment gate (offline lexical proxy on gold)
+========================================================================
+offline proxy: 40/50 gold cards pass (80.0%); coarse fallback -- real gate is the LLM NLI below.
+
+========================================================================
+4. AI-OFF path
+========================================================================
+AI disabled -> deck = 50 pre-authored gold cards + BM25 retrieval. No generation, no network. The app studies and scores normally.
+
+========================================================================
+LIVE LLM PIPELINE -- SKIPPED (no OPENAI_API_KEY)
+========================================================================
+Set OPENAI_API_KEY to run generation + judge (kappa) + LLM entailment + red-team.
+
+========================================================================
+REPORT
+========================================================================
+written -> /Users/sina/dev/Speedrun/anki/tools/speedrun/ai/ai_report.json

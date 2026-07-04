@@ -1,0 +1,30 @@
+=== Speedrun two-device sync + conflict test ===
+Run: 2026-07-03 12:16:19
+Engine: shared Anki Rust core via anki-ffi C ABI (speedrun_sync).
+Server: self-hosted anki-sync-server on 127.0.0.1:8080 (SYNC_USER1=test:test).
+Command: PYTHONPATH=out/pylib out/pyenv/bin/python tools/speedrun/sync_conflict_test.py
+
+desktop imported 46 cards
+desktop first sync -> FULL UPLOAD
+phone   first sync -> FULL DOWNLOAD
+phone has 46 cards after download
+desktop offline-reviewed: 10
+phone   offline-reviewed: 10
+phone sync -> in-sync/normal
+desktop sync -> in-sync/normal
+phone sync -> in-sync/normal
+AFTER MERGE  desktop: reviewed=20 revlog=20 | phone: reviewed=20 revlog=20
+PASS #1: 10 phone + 10 desktop offline reviews merged -> 20 on both, none lost/double.
+
+conflict on one card: desktop=Again (earlier), phone=Easy (later)
+  sync P -> in-sync/normal
+  sync D -> in-sync/normal
+  sync P -> in-sync/normal
+  sync D -> in-sync/normal
+  observer sync -> FULL DOWNLOAD
+card X  desktop=(1, 4, 2) rl=2 | phone=(1, 4, 2) rl=2 | server(observer)=(1, 4, 2) rl=2
+PASS #2: same-card conflict converged to ONE winner on all 3 = Easy (later write); BOTH reviews kept in revlog (append-only).
+
+ALL SYNC TESTS PASSED (phone<->desktop two-way sync on the shared Rust engine).
+
+EXIT: 0

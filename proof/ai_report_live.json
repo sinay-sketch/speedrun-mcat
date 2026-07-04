@@ -1,0 +1,78 @@
+{
+  "has_key": true,
+  "gen_model": "gpt-4o-mini",
+  "judge_model": "gpt-4o",
+  "retrieval": {
+    "BM25 (lexical baseline)": {
+      "nDCG@10": 0.7229484916597555,
+      "Recall@1": 0.56,
+      "Recall@3": 0.72,
+      "Recall@5": 0.76,
+      "MRR": 0.6656935960591133
+    },
+    "Vector (TF-IDF cosine)": {
+      "nDCG@10": 0.7309283251531682,
+      "Recall@1": 0.56,
+      "Recall@3": 0.72,
+      "Recall@5": 0.8,
+      "MRR": 0.6758626262626263
+    },
+    "Hybrid RRF (BM25+TF-IDF)": {
+      "nDCG@10": 0.7229729608093917,
+      "Recall@1": 0.56,
+      "Recall@3": 0.72,
+      "Recall@5": 0.76,
+      "MRR": 0.6660549487161181
+    },
+    "Vector (OpenAI embeddings)": {
+      "nDCG@10": 1.0,
+      "Recall@1": 1.0,
+      "Recall@3": 1.0,
+      "Recall@5": 1.0,
+      "MRR": 1.0
+    },
+    "Hybrid RRF (BM25+OpenAI)": {
+      "nDCG@10": 0.8107944179657981,
+      "Recall@1": 0.64,
+      "Recall@3": 0.88,
+      "Recall@5": 0.92,
+      "MRR": 0.765
+    }
+  },
+  "injection_structural_ok": true,
+  "entailment_offline": {
+    "kept": 40,
+    "n": 50,
+    "rate": 0.8
+  },
+  "ai_off_deck_cards": 50,
+  "entailment_llm": {
+    "kept": 24,
+    "n": 24,
+    "rate": 1.0
+  },
+  "generation": {
+    "n": 24,
+    "tiers": {
+      "0": 0,
+      "1": 0,
+      "2": 1,
+      "3": 23
+    },
+    "usable_rate": 1.0
+  },
+  "judge_calibration": {
+    "n": 65,
+    "kappa": 0.957654723127036,
+    "agreement": 0.9846153846153847,
+    "gold_kept": 49,
+    "gold_rejected": 1,
+    "bad_passed": 0,
+    "bad_caught": 15
+  },
+  "injection_red_team": {
+    "blocked": 4,
+    "attacks": 4,
+    "block_rate": 1.0
+  }
+}
