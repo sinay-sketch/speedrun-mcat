@@ -10,8 +10,37 @@ give-up rule" requirement inside the desktop app."""
 from __future__ import annotations
 
 import aqt
+from aqt import gui_hooks
 from aqt.qt import QAction, qconnect
 from aqt.utils import showInfo
+
+
+def add_autosync_on_deckbrowser(mw: aqt.main.AnkiQt) -> None:
+    """Auto-sync when the user returns to the deck list after studying, mirroring
+    the phone app's sync-on-return-to-Home. Fires the same path as the Sync button
+    only when already authenticated (never pops a login dialog) and never overlaps
+    an in-progress sync."""
+
+    def on_state_did_change(new_state: str, old_state: str) -> None:
+        if new_state != "deckBrowser" or old_state not in ("review", "overview"):
+            return
+        if not mw.col:
+            return
+        try:
+            if mw.pm.sync_auth() is None:
+                return
+        except Exception:
+            return
+        if mw.progress.busy():
+            return
+        try:
+            if mw.media_syncer.is_syncing():
+                return
+        except Exception:
+            pass
+        mw.on_sync_button_clicked()
+
+    gui_hooks.state_did_change.append(on_state_did_change)
 
 
 def add_memory_score_action(mw: aqt.main.AnkiQt) -> None:

@@ -1452,6 +1452,8 @@ title="{}" {}>{}</button>""".format(
         import aqt.speedrun
 
         aqt.speedrun.add_memory_score_action(self)
+        # Speedrun (MCAT): auto-sync on return to the deck list (mirrors the phone).
+        aqt.speedrun.add_autosync_on_deckbrowser(self)
 
         # View
         qconnect(
