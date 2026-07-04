@@ -13,6 +13,7 @@ pub(crate) mod filtered;
 pub mod fsrs;
 pub mod mastery;
 pub mod new;
+pub mod performance;
 pub(crate) mod queue;
 mod reviews;
 mod service;
