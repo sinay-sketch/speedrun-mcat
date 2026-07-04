@@ -270,11 +270,9 @@ struct HomeView: View {
                     ScoreCard(title: "READY", accent: .green, sufficient: engine.readySufficient,
                               value: "\(engine.readyScore)",
                               range: "\(engine.readyLower)–\(engine.readyUpper)",
-                              note: "study more")
+                              note: "needs full-length exams")
                 }
-                Text(engine.readySufficient
-                     ? "Memory = predicted recall · Performance = Elo mastery · Readiness = provisional MCAT (472–528), a confident score needs full-length exams."
-                     : "Three scores from the shared Rust engine, each with a 95% range and a give-up rule when data is thin.")
+                Text("Memory & Performance cover the cards you've studied. Readiness stays blank until you log scored full-length exams — no fake number off a small deck.")
                     .font(.caption2).foregroundStyle(.secondary).multilineTextAlignment(.center)
 
                 // Deck row — tappable, opens the study session (like Anki's deck list)

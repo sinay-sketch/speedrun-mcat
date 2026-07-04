@@ -1,22 +1,24 @@
-Speedrun (MCAT) — the three honest, ranged scores (from the SHARED Rust engine)
+Speedrun (MCAT) - the three honest, ranged scores (from the SHARED Rust engine)
 Deck: MCAT::Speedrun Starter | captured from the synced collection
 Each score has a 95% range and a give-up rule (abstains when data is thin).
 
-MEMORY      : 98%  (95% range 94%-100%)
-              across 35 of 46 cards with a memory state | sufficient_data=True
-              = mean FSRS predicted recall + Poisson-binomial band (give-up < 20 cards)
+MEMORY      : 99%  (95% range 95%-100%)
+              across 36 of 46 cards you've studied | sufficient_data=True
+              = mean FSRS predicted recall of studied cards + Poisson-binomial band (give-up < 20 cards)
 
-PERFORMANCE : 89%  (95% range 83%-93%)
-              over 78 graded reviews across 35 cards | sufficient_data=True
-              = online Elo (Again=loss, Hard/Good/Easy=win) -> P(correct vs avg card), band narrows with #reviews (give-up < 30 reviews)
+PERFORMANCE : 90%  (95% range 85%-94%)
+              over 87 graded reviews across 36 studied cards | sufficient_data=True
+              = online Elo mastery of THIS deck (Again=loss, Hard/Good/Easy=win); band narrows with #reviews (give-up < 30 reviews)
 
-READINESS   : 524  (range 521-527) on the MCAT 472-528 scale
-              confident=False (PROVISIONAL by design) | sufficient_data=True
-              = transparent monotone link of Memory+Performance, widened band; never 'confident' without scored full-length exams
+READINESS   : ABSTAINS (not shown) - the honest give-up rule.
+              full_lengths=0 (need >= 5 scored full-length exams); sufficient_data=False
+              A small, freshly-studied flashcard deck implies a misleadingly high number
+              (provisional estimate would be ~525), so we DO NOT report it as readiness.
+              Flashcard recall cannot substitute for a scored full-length; the app shows a blank until then.
 
 Raw JSON from the FFI (speedrun_mastery / speedrun_performance / speedrun_readiness):
-  memory      = {"cards_counted": 35, "cards_total": 46, "lower": 0.9389125108718872, "mature": 0, "mean_retrievability": 0.9823331832885742, "sufficient_data": true, "upper": 1.0}
-  performance = {"cards_reviewed": 35, "lower": 0.829145610332489, "mastery": 0.8899850249290466, "reviews": 78, "sufficient_data": true, "upper": 0.930963933467865}
-  readiness   = {"confident": false, "lower": 521, "scaled": 524, "sufficient_data": true, "upper": 527}
+  memory      = {"cards_counted": 36, "cards_total": 46, "lower": 0.9490172863006592, "mature": 0, "mean_retrievability": 0.9865515828132629, "sufficient_data": true, "upper": 1.0}
+  performance = {"cards_reviewed": 36, "lower": 0.8512809872627258, "mastery": 0.9027828574180603, "reviews": 87, "sufficient_data": true, "upper": 0.9377535581588745}
+  readiness   = {"confident": false, "full_lengths": 0, "lower": 522, "scaled": 525, "sufficient_data": false, "upper": 527}
 
-Computed in rslib/src/scheduler/mastery.rs + performance.rs (read-only; 8 Rust unit tests).
+Computed in rslib/src/scheduler/mastery.rs + performance.rs (read-only; unit tests).

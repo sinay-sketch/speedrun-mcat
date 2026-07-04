@@ -33,6 +33,18 @@ const ELO_START: f32 = 1500.0;
 const MCAT_MIN: f32 = 472.0;
 const MCAT_MAX: f32 = 528.0;
 
+/// Scored full-length practice exams required before a Readiness *number* is
+/// reported (the BrainLift hard gate against fake readiness). Flashcard recall
+/// cannot substitute for a full-length, so below this we abstain. The app does
+/// not yet ingest full-length results, so in practice this is always unmet today
+/// and Readiness abstains rather than report an inflated number off a small deck.
+pub const MIN_FULL_LENGTHS_FOR_READINESS: u32 = 5;
+
+/// Whether there are enough scored full-lengths to report a Readiness number.
+fn enough_full_lengths(n: u32) -> bool {
+    n >= MIN_FULL_LENGTHS_FOR_READINESS
+}
+
 /// The honest, aggregated Performance score for a deck.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct DeckPerformance {
@@ -117,49 +129,61 @@ impl Collection {
     }
 }
 
-/// The honest, aggregated Readiness score for a deck (provisional MCAT scaled score).
+/// The honest, aggregated Readiness score for a deck.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct DeckReadiness {
-    /// Provisional MCAT scaled score in `[472, 528]`.
+    /// A *transparency-only* provisional MCAT estimate in `[472, 528]` (what the
+    /// Memory+Performance blend would imply). Not reported as a score while we
+    /// abstain — see `sufficient_data`.
     pub scaled_score: u32,
     pub lower: u32,
     pub upper: u32,
-    /// Always false: a *confident* readiness needs scored full-length exams, which
-    /// flashcard data cannot substitute for. We only ever show a provisional value.
+    /// Always false: a confident readiness needs scored full-length exams.
     pub confident: bool,
-    /// False when Memory or Performance is itself insufficient — then we abstain.
+    /// True only when there are ≥ [`MIN_FULL_LENGTHS_FOR_READINESS`] scored
+    /// full-lengths. We don't ingest those yet, so this is currently always false
+    /// and the app abstains (give-up rule) instead of showing an inflated number.
     pub sufficient_data: bool,
+    /// Scored full-length exams available (0 until such data is ingested).
+    pub full_lengths: u32,
 }
 
 impl Collection {
-    /// Transparent monotone link of Memory + Performance onto the MCAT scale, with
-    /// a widened band. Provisional by construction. Read-only.
+    /// Readiness = a transparent monotone link of Memory + Performance onto the
+    /// MCAT scale. **It abstains** (`sufficient_data = false`) until there are
+    /// scored full-length exams, because a small, freshly-studied flashcard deck
+    /// produces a misleadingly high number (e.g. ~525) that isn't real readiness.
+    /// The provisional estimate is still computed and returned for transparency.
+    /// Read-only.
     pub fn readiness_for_deck(&mut self, did: DeckId) -> Result<DeckReadiness> {
         let mem = self.mastery_for_deck(did)?;
         let perf = self.performance_for_deck(did)?;
-        if !mem.sufficient_data || !perf.sufficient_data {
-            return Ok(DeckReadiness {
-                scaled_score: 0,
-                lower: 0,
-                upper: 0,
-                confident: false,
-                sufficient_data: false,
-            });
-        }
-        // Equal-weight blend of recall (Memory) and application skill (Performance).
-        let frac = |m: f32, p: f32| (0.5 * m + 0.5 * p).clamp(0.0, 1.0);
-        let to_scaled = |f: f32| MCAT_MIN + f * (MCAT_MAX - MCAT_MIN);
-        let point = frac(mem.mean_retrievability, perf.mastery);
-        let lo = frac(mem.lower, perf.lower);
-        let hi = frac(mem.upper, perf.upper);
-        // Widen the band by 20% (provisional; deliberately wider than AAMC's ±2).
-        let widen = 0.2 * (hi - lo);
+        // Provisional estimate (transparency only), when the inputs exist.
+        let (scaled, lo, hi) = if mem.sufficient_data && perf.sufficient_data {
+            let frac = |m: f32, p: f32| (0.5 * m + 0.5 * p).clamp(0.0, 1.0);
+            let to_scaled = |f: f32| (MCAT_MIN + f * (MCAT_MAX - MCAT_MIN)).round() as u32;
+            let point = frac(mem.mean_retrievability, perf.mastery);
+            let l = frac(mem.lower, perf.lower);
+            let h = frac(mem.upper, perf.upper);
+            let widen = 0.2 * (h - l); // deliberately wider than AAMC's ±2
+            (
+                to_scaled(point),
+                to_scaled((l - widen).max(0.0)),
+                to_scaled((h + widen).min(1.0)),
+            )
+        } else {
+            (0, 0, 0)
+        };
+        // A trustworthy Readiness needs scored full-length exams, which flashcard
+        // review cannot substitute for. We don't ingest those yet, so abstain.
+        let full_lengths = 0u32;
         Ok(DeckReadiness {
-            scaled_score: to_scaled(point).round() as u32,
-            lower: to_scaled((lo - widen).max(0.0)).round() as u32,
-            upper: to_scaled((hi + widen).min(1.0)).round() as u32,
+            scaled_score: scaled,
+            lower: lo,
+            upper: hi,
             confident: false,
-            sufficient_data: true,
+            sufficient_data: enough_full_lengths(full_lengths),
+            full_lengths,
         })
     }
 }
@@ -200,5 +224,16 @@ mod test {
         let r = col.readiness_for_deck(DeckId(1)).unwrap();
         assert!(!r.sufficient_data, "no data => Readiness abstains");
         assert!(!r.confident, "Readiness is never confident without full-lengths");
+    }
+
+    #[test]
+    fn readiness_gates_on_full_lengths() {
+        // The honest give-up rule: no report until ≥ MIN scored full-lengths.
+        assert!(!enough_full_lengths(0));
+        assert!(!enough_full_lengths(MIN_FULL_LENGTHS_FOR_READINESS - 1));
+        assert!(enough_full_lengths(MIN_FULL_LENGTHS_FOR_READINESS));
+        // The app ingests no full-lengths yet, so Readiness abstains regardless of
+        // how strong Memory/Performance look on a small deck.
+        assert!(!enough_full_lengths(0), "0 full-lengths today => abstain");
     }
 }

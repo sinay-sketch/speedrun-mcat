@@ -310,6 +310,7 @@ pub unsafe extern "C" fn speedrun_readiness(col: *mut Collection, did: i64) -> *
             "upper": r.upper,
             "confident": r.confident,
             "sufficient_data": r.sufficient_data,
+            "full_lengths": r.full_lengths,
         })
         .to_string(),
         Err(_) => "{}".into(),
