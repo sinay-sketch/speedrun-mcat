@@ -1,0 +1,6 @@
+# Speedrun AI card-generation harness — pinned for reproducibility.
+openai==1.51.0        # live generation + LLM-as-judge (needs OPENAI_API_KEY)
+rank_bm25==0.2.2      # BM25 retrieval baseline
+scikit-learn==1.5.2   # TF-IDF vector arm + metrics
+numpy==2.1.3
+httpx==0.27.2        # compat with openai 1.51.0 (newer httpx drops 'proxies')

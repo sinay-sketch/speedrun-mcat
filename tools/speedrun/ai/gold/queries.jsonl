@@ -1,0 +1,25 @@
+{"qid": "q01", "query": "In sugar breakdown, which protein governs the committed, slowest control point, and what switches it on or off?", "relevant": ["bc01"]}
+{"qid": "q02", "query": "Per molecule of blood sugar, what net energy currency and electron carriers does the initial cytoplasmic breakdown to pyruvate produce?", "relevant": ["bc01"]}
+{"qid": "q03", "query": "Why can the liver keep soaking up sugar when other tissues stop, thanks to its distinctive phosphorylating enzyme?", "relevant": ["bc02"]}
+{"qid": "q04", "query": "In the cycle that fully oxidizes acetyl groups to carbon dioxide, which enzyme is the bottleneck?", "relevant": ["bc03"]}
+{"qid": "q05", "query": "What harnesses the proton gradient across the inner mitochondrial membrane to assemble the cell's energy currency?", "relevant": ["bc04"]}
+{"qid": "q06", "query": "In enzyme kinetics, what does the constant equal to the substrate level at half-maximal speed tell you about binding?", "relevant": ["bc05"]}
+{"qid": "q07", "query": "A molecule fights for the active site. How does it change the apparent binding constant versus the top speed?", "relevant": ["bc06"]}
+{"qid": "q08", "query": "What mainly drives a chain of amino acids to collapse into its compact folded shape?", "relevant": ["bc08"]}
+{"qid": "q09", "query": "How does the body coax the oxygen carrier to let go of more oxygen in hard-working, acidic tissue?", "relevant": ["bc09"]}
+{"qid": "q10", "query": "Which membrane ingredient keeps the bilayer from getting too rigid in the cold or too runny in the heat?", "relevant": ["bc10"]}
+{"qid": "q11", "query": "If you compress a gas-phase reaction, which way does the balance shift?", "relevant": ["gc01"]}
+{"qid": "q12", "query": "At what acidity is a weak-acid mixture most resistant to changes when acid or base is added?", "relevant": ["gc02"]}
+{"qid": "q13", "query": "How is the standard spontaneity measure tied to where a reaction settles at balance?", "relevant": ["gc03"]}
+{"qid": "q14", "query": "In a battery that runs on its own, at which terminal do electrons depart?", "relevant": ["gc04"]}
+{"qid": "q15", "query": "Can you read how fast a reaction goes straight off the balanced equation, or must you measure it?", "relevant": ["gc06"]}
+{"qid": "q16", "query": "What links the total push-times-distance on an object to its energy of motion?", "relevant": ["ph01"]}
+{"qid": "q17", "query": "Under what condition does an object's total useful energy stay constant during motion?", "relevant": ["ph02"]}
+{"qid": "q18", "query": "In flowing liquid, what happens to the push on the walls where the stream speeds up?", "relevant": ["ph03"]}
+{"qid": "q19", "query": "How does the influence field around a single charged particle weaken as you move away?", "relevant": ["ph04"]}
+{"qid": "q20", "query": "Why does adding ten to the loudness number correspond to ten times the power?", "relevant": ["ph05"]}
+{"qid": "q21", "query": "What separates moving a dissolved substance uphill using cellular fuel from letting it drift down its gradient?", "relevant": ["bi01"]}
+{"qid": "q22", "query": "During which stretch of a dividing cell's life is its full genome duplicated?", "relevant": ["bi02"]}
+{"qid": "q23", "query": "Why can some chemical messengers slip inside a cell and tune gene activity while others only knock from outside?", "relevant": ["bi05"]}
+{"qid": "q24", "query": "What holds a resting nerve cell's interior negative compared with the outside?", "relevant": ["bi04"]}
+{"qid": "q25", "query": "Which reward pattern makes a learned behavior the hardest to stamp out?", "relevant": ["ps01"]}

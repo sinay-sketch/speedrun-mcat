@@ -1,0 +1,50 @@
+{"id": "g01", "source_id": "bc01", "type": "basic", "front": "What is the rate-limiting enzyme of glycolysis?", "back": "Phosphofructokinase-1 (PFK-1)."}
+{"id": "g02", "source_id": "bc01", "type": "basic", "front": "PFK-1 is allosterically inhibited by which two molecules?", "back": "ATP and citrate."}
+{"id": "g03", "source_id": "bc01", "type": "basic", "front": "PFK-1 is allosterically activated by which two molecules?", "back": "AMP and fructose-2,6-bisphosphate."}
+{"id": "g04", "source_id": "bc01", "type": "basic", "front": "Net ATP yield of glycolysis per glucose?", "back": "2 ATP."}
+{"id": "g05", "source_id": "bc01", "type": "basic", "front": "Net NADH yield of glycolysis per glucose?", "back": "2 NADH."}
+{"id": "g06", "source_id": "bc01", "type": "basic", "front": "Glycolysis converts glucose into two molecules of what?", "back": "Pyruvate."}
+{"id": "g07", "source_id": "bc02", "type": "basic", "front": "Which enzyme catalyzes the first step of glycolysis?", "back": "Hexokinase."}
+{"id": "g08", "source_id": "bc02", "type": "basic", "front": "Hexokinase is inhibited by which product?", "back": "Glucose-6-phosphate."}
+{"id": "g09", "source_id": "bc02", "type": "basic", "front": "Why is liver glucokinase not inhibited by glucose-6-phosphate?", "back": "It has a high Km, letting the liver buffer blood glucose."}
+{"id": "g10", "source_id": "bc03", "type": "basic", "front": "How many CO2 are released per acetyl-CoA in the citric acid cycle?", "back": "Two CO2."}
+{"id": "g11", "source_id": "bc03", "type": "basic", "front": "Rate-limiting enzyme of the citric acid cycle?", "back": "Isocitrate dehydrogenase."}
+{"id": "g12", "source_id": "bc03", "type": "basic", "front": "Per acetyl-CoA, the citric acid cycle yields how many NADH?", "back": "3 NADH."}
+{"id": "g13", "source_id": "bc04", "type": "basic", "front": "What drives ATP synthase during oxidative phosphorylation?", "back": "The proton-motive force (proton gradient)."}
+{"id": "g14", "source_id": "bc04", "type": "basic", "front": "Approximate ATP yield from complete oxidation of one glucose?", "back": "About 30-32 ATP."}
+{"id": "g15", "source_id": "bc05", "type": "basic", "front": "What does Km equal in terms of substrate concentration?", "back": "The substrate concentration at half Vmax."}
+{"id": "g16", "source_id": "bc05", "type": "basic", "front": "A lower Km indicates what about enzyme-substrate affinity?", "back": "Higher affinity."}
+{"id": "g17", "source_id": "bc06", "type": "basic", "front": "How does a competitive inhibitor affect apparent Km?", "back": "It raises the apparent Km."}
+{"id": "g18", "source_id": "bc06", "type": "basic", "front": "How does a noncompetitive inhibitor affect Vmax?", "back": "It lowers Vmax."}
+{"id": "g19", "source_id": "bc07", "type": "basic", "front": "At physiological pH, which amino acid side chains are negatively charged?", "back": "Acidic side chains: aspartate and glutamate."}
+{"id": "g20", "source_id": "bc08", "type": "basic", "front": "Which effect primarily drives protein tertiary folding?", "back": "The hydrophobic effect."}
+{"id": "g21", "source_id": "bc08", "type": "basic", "front": "What stabilizes alpha helices and beta sheets?", "back": "Backbone hydrogen bonds."}
+{"id": "g22", "source_id": "bc09", "type": "basic", "front": "In the Bohr effect, how does lower pH change hemoglobin's O2 affinity?", "back": "It lowers oxygen affinity, promoting O2 release."}
+{"id": "g23", "source_id": "bc09", "type": "basic", "front": "Which oxygen-binding curve is sigmoidal, hemoglobin or myoglobin?", "back": "Hemoglobin (cooperative binding)."}
+{"id": "g24", "source_id": "bc10", "type": "basic", "front": "What does cholesterol do to membrane fluidity?", "back": "It buffers fluidity against temperature changes."}
+{"id": "g25", "source_id": "gc01", "type": "basic", "front": "Increasing pressure shifts a gas equilibrium toward which side?", "back": "The side with fewer moles of gas."}
+{"id": "g26", "source_id": "gc02", "type": "basic", "front": "State the Henderson-Hasselbalch equation.", "back": "pH = pKa + log([A-]/[HA])."}
+{"id": "g27", "source_id": "gc02", "type": "basic", "front": "A buffer's capacity is greatest when pH equals what?", "back": "The pKa (where [A-] = [HA])."}
+{"id": "g28", "source_id": "gc03", "type": "basic", "front": "Write the Gibbs free energy equation.", "back": "dG = dH - T*dS."}
+{"id": "g29", "source_id": "gc03", "type": "basic", "front": "A negative dG indicates what kind of process?", "back": "Spontaneous (exergonic)."}
+{"id": "g30", "source_id": "gc03", "type": "basic", "front": "Relate dG0 to the equilibrium constant K.", "back": "dG0 = -RT ln K."}
+{"id": "g31", "source_id": "gc04", "type": "basic", "front": "At which electrode does oxidation occur?", "back": "The anode."}
+{"id": "g32", "source_id": "gc04", "type": "basic", "front": "Is a galvanic cell with positive cell potential spontaneous?", "back": "Yes."}
+{"id": "g33", "source_id": "gc05", "type": "basic", "front": "State the ideal gas law.", "back": "PV = nRT."}
+{"id": "g34", "source_id": "gc05", "type": "basic", "front": "Volume of one mole of ideal gas at STP?", "back": "22.4 L."}
+{"id": "g35", "source_id": "gc06", "type": "basic", "front": "The overall reaction rate is limited by which step?", "back": "The rate-determining (slowest) step."}
+{"id": "g36", "source_id": "gc06", "type": "basic", "front": "How does a catalyst speed a reaction?", "back": "By lowering the activation energy; it is not consumed."}
+{"id": "g37", "source_id": "ph01", "type": "basic", "front": "State the work-energy theorem.", "back": "Net work equals the change in kinetic energy."}
+{"id": "g38", "source_id": "ph01", "type": "basic", "front": "Formula for kinetic energy?", "back": "(1/2)mv^2."}
+{"id": "g39", "source_id": "ph02", "type": "basic", "front": "Gravitational potential energy near Earth's surface?", "back": "mgh."}
+{"id": "g40", "source_id": "ph02", "type": "basic", "front": "When is mechanical energy conserved?", "back": "When only conservative forces act."}
+{"id": "g41", "source_id": "ph03", "type": "basic", "front": "According to Bernoulli, faster fluid flow corresponds to what pressure?", "back": "Lower pressure."}
+{"id": "g42", "source_id": "ph03", "type": "basic", "front": "State the continuity equation for an incompressible fluid.", "back": "A1v1 = A2v2."}
+{"id": "g43", "source_id": "ph04", "type": "basic", "front": "State Coulomb's law.", "back": "F = k*q1*q2 / r^2."}
+{"id": "g44", "source_id": "ph05", "type": "basic", "front": "A 10 dB increase corresponds to what change in intensity?", "back": "A tenfold increase."}
+{"id": "g45", "source_id": "ph06", "type": "basic", "front": "Thin-lens equation?", "back": "1/f = 1/do + 1/di."}
+{"id": "g46", "source_id": "bi01", "type": "basic", "front": "What powers active transport?", "back": "ATP (energy), to move against the gradient."}
+{"id": "g47", "source_id": "bi02", "type": "basic", "front": "In which phase of the cell cycle does DNA replicate?", "back": "S phase."}
+{"id": "g48", "source_id": "bi04", "type": "basic", "front": "Typical resting membrane potential of a neuron?", "back": "About -70 mV."}
+{"id": "g49", "source_id": "bi05", "type": "basic", "front": "How do steroid hormones alter cell behavior?", "back": "They are lipid-soluble and bind intracellular receptors to alter transcription."}
+{"id": "g50", "source_id": "ps01", "type": "basic", "front": "Which reinforcement schedule yields the highest, most persistent response rate?", "back": "Variable-ratio."}
