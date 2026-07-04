@@ -17,19 +17,27 @@ targets:
       - path: Assets.xcassets
       - path: anki_ffi.h
       - path: Bridging-Header.h
+    info:
+      path: Info.plist
+      properties:
+        CFBundleDisplayName: Speedrun MCAT
+        UILaunchScreen: {}
+        # Allow cleartext HTTP to the self-hosted sync server on localhost / LAN
+        # (the phone<->desktop two-way sync demo runs over http://127.0.0.1:8080).
+        NSAppTransportSecurity:
+          NSAllowsLocalNetworking: true
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.speedrun.mcat
         SWIFT_OBJC_BRIDGING_HEADER: Bridging-Header.h
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
-        GENERATE_INFOPLIST_FILE: YES
-        INFOPLIST_KEY_UILaunchScreen_Generation: YES
-        INFOPLIST_KEY_CFBundleDisplayName: Speedrun MCAT
         TARGETED_DEVICE_FAMILY: "1,2"
         MARKETING_VERSION: "0.1"
         CURRENT_PROJECT_VERSION: "1"
-        # anki-ffi is a static lib; its transitive Rust/C deps need these:
-        OTHER_LDFLAGS: ["-lc++", "-lz"]
+        # anki-ffi is a static lib; its transitive Rust/C deps need these.
+        # Security/SystemConfiguration: ring/rustls + reqwest (sync over the
+        # shared engine) reference SecRandomCopyBytes and reachability APIs.
+        OTHER_LDFLAGS: ["-lc++", "-lz", "-framework", "Security", "-framework", "SystemConfiguration", "-framework", "CoreFoundation"]
     dependencies:
       - framework: AnkiRust.xcframework
         embed: false
