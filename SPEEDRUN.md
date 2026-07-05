@@ -8,6 +8,7 @@ that turns it into an MCAT study system: a **desktop app** and an **iOS companio
 Readiness) with honest ranges and a give-up rule, a **discrimination-aware interleaving**
 feature, and an **AI card-quality harness** with source-tracing, held-out evals, and safety
 checks. The thesis is in `../BrainLift_v2_Enhanced.md` (summary: `../BrainLift_v2_Summary.pdf`).
+**See [`BUILD_NOTES.md`](BUILD_NOTES.md)** for a plain-language map from the thesis to what's built here + the pre-registered predictions scoreboard.
 
 ## License & credit
 Licensed under the **GNU AGPL, v3 or later** (same as upstream Anki), portions BSD-3 (see
