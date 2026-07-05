@@ -32,6 +32,10 @@ outside the repo; the phone→desktop sync **recording** is submitted separately
 | Score honesty — memory model **calibrated** (ECE + reliability diagram, time split) | `calibration_output.txt` (Brier 0.133, log loss 0.407, **ECE 0.0048**); code `tools/speedrun/scoring/calibration.py` |
 | **No test-data leakage** (auto-asserted) | `leakage_output.txt` (held-out queries not corpus copies, all sets disjoint); code `tools/speedrun/ai/leakage.py` |
 | Learning-science feature tested by **ablation** (interleaving) | `interleaving_ablation_output.txt` (equal study time, spacing held constant; **d = 0.90, 95% CI [0.75, 1.04]**; blocked ≈ plain on recall); code `tools/speedrun/ablation/interleaving_ablation.py` + Rust feature `rslib/src/scheduler/interleave.rs` (3 tests) |
+| **Crash / zero-corruption** (kill mid-review) | `crash_test_output.txt` (**20/20 SIGKILLs → SQLite OK, 46 cards preserved**); code `tools/speedrun/crash_test.py` |
+| **Speed at 50k cards** (latency targets) | `benchmark_50k_output.txt` (answer p95 1.2ms<50 · next-card 9.4ms<100 · dashboard 70ms<1000 · counts 11ms<500 — all PASS); code `tools/speedrun/benchmark.py` |
+| **Coverage map** vs AAMC outline (feeds Readiness give-up) | `coverage_map_output.txt` (3/3 flashcardable sections, 7/7 disciplines; CARS 0%; 0 full-lengths → Readiness abstains); code `tools/speedrun/coverage_map.py` |
+| **One command to run everything** | `tools/speedrun/run_all_tests.sh` |
 
 ## Reproduce
 - AI harness: `OPENAI_API_KEY=… tools/speedrun/ai/.venv/bin/python tools/speedrun/ai/run_harness.py --gen-chunks 8` (offline parts need no key).

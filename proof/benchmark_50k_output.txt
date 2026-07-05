@@ -1,0 +1,11 @@
+50k-card benchmark on the shared engine (anki-ffi). reviews sampled: 40
+
+operation                               p50      p95    worst    target  result
+--------------------------------------------------------------------------------
+answer (button ack)                   1.08m    1.16m    1.41m       50m  PASS
+next card                             8.65m    9.37m   29.33m      100m  PASS
+dashboard load (mastery, 50k)        67.98m   70.04m   70.61m     1000m  PASS
+deck counts (New/Learn/Due, 50k)     10.61m   10.79m   11.27m      500m  PASS
+
+(all times in ms; p95 vs target)
+BENCHMARK PASSED — all latency targets met at 50k cards.

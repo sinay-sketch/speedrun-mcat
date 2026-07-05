@@ -1,0 +1,123 @@
+──▶ Rust score/feature tests
+
+running 139 tests
+....................................................................................... 87/139
+....................................................
+test result: ok. 139 passed; 0 failed; 0 ignored; 0 measured; 394 filtered out; finished in 0.35s
+
+
+──▶ Python engine test (MasteryForDeck)
+.                                                                        [100%]
+1 passed in 0.20s
+
+──▶ AI leakage assertion
+L1 retrieval queries not copied from corpus: max word-containment 0.44 (query q04 vs bc03), threshold 0.8
+L2 gold(50) vs bad(15) calibration fronts disjoint: yes
+L3 query set disjoint from gold-card fronts: yes
+L4 qrels reference only real chunks: yes
+L5 (generated-vs-gold) skipped: pass a generated_cards.jsonl to enable.
+
+LEAKAGE CHECK PASSED: no test data leaks into training/eval inputs.
+
+──▶ Memory calibration (ECE)
+Leakage guard: train seed != test seed; metrics reported on the held-out test epoch only.
+Held-out test reviews: 6000
+
+=== Memory model (FSRS-5 curve, default params) — held-out calibration ===
+Brier score : 0.1328   (lower is better; 0.25 = coin flip)
+Log loss    : 0.4074
+ECE         : 0.0048   (mean gap between predicted and actual; want ≤ 0.05)
+
+Reliability diagram (predicted vs actual recall per probability bin):
+  bin        n   pred   actual  reliability (pred=|  actual=#)
+  0.0-0.1    0     -       -
+  0.1-0.2    0     -       -
+  0.2-0.3   508  0.261  0.268   ..........#.............................
+  0.3-0.4   538  0.348  0.348   .............#..........................
+  0.4-0.5   467  0.449  0.441   .................#......................
+  0.5-0.6   398  0.550  0.575   .....................|.#................
+  0.6-0.7   438  0.654  0.655   ..........................#.............
+  0.7-0.8   502  0.751  0.757   ..............................#.........
+  0.8-0.9   695  0.853  0.847   .................................#|.....
+  0.9-1.0  2454  0.966  0.965   ......................................#.
+
+Sanity check — overconfident variant ECE = 0.0462 (should be >> 0.0048).
+
+CALIBRATION PASSED: well-specified ECE=0.0048 ≤ 0.05, and the diagram flags the overconfident model (ECE 0.0462).
+Note: FSRS-5 is externally validated (RMSE ≈ 6.5%, 10k+ collections); this is a methodology + honesty demonstration since our own deck (n≈87) is too small to bin.
+
+──▶ Interleaving ablation
+Interleaving ablation — pre-registered simulation (equal study time, spacing held constant)
+learners=400  concepts=24  trials/arm=480 (equal)  seed=7
+PRE-REGISTERED: interleaved narrows the recall−reworded gap vs blocked by d ≥ 0.3; blocked ≈ plain on pure recall.
+
+Arm            pure-recall   recall−reworded gap (transfer failure)
+  interleaved   0.845        0.322  (± 0.146)
+  blocked       0.836        0.446  (± 0.129)
+  plain         0.841        0.449  (± 0.135)
+
+PRIMARY  interleaved vs blocked, gap reduction: Cohen's d = 0.90  95% CI [0.75, 1.04]
+SECONDARY blocked vs plain, pure recall: Cohen's d = -0.04 (expected ≈ 0)
+
+RESULT: PREDICTION HELD — interleaving improved discrimination by d=0.90 (≥ 0.3), CI excludes 0. Keep the feature.
+Honest scope: simulated learner (no multi-week human data in a weekend); the mechanism affects discriminability, not the outcome directly, so the gap emerges. Spacing is held identical between interleaved and blocked, isolating within-session order.
+
+──▶ Crash / zero-corruption (x20)
+seeded collection with 46 MCAT cards
+
+20/20 hard kills mid-review -> collection intact (SQLite integrity OK, 46 cards preserved, none lost or duplicated).
+CRASH TEST PASSED: zero corrupt collections.
+
+──▶ 50k-card speed benchmark
+using cached 50k collection (50000 cards)
+50k-card benchmark on the shared engine (anki-ffi). reviews sampled: 0
+
+operation                               p50      p95    worst    target  result
+--------------------------------------------------------------------------------
+answer (button ack)                       —
+next card                            31.33m   31.33m   31.33m      100m  PASS
+dashboard load (mastery, 50k)        67.02m   67.78m   69.10m     1000m  PASS
+deck counts (New/Learn/Due, 50k)     10.44m   10.56m   10.59m      500m  PASS
+
+(all times in ms; p95 vs target)
+BENCHMARK PASSED — all latency targets met at 50k cards.
+
+──▶ Two-way sync + conflict
+desktop imported 46 cards
+desktop first sync -> FULL UPLOAD
+phone   first sync -> FULL DOWNLOAD
+phone has 46 cards after download
+desktop offline-reviewed: 10
+phone   offline-reviewed: 10
+phone sync -> in-sync/normal
+desktop sync -> in-sync/normal
+phone sync -> in-sync/normal
+AFTER MERGE  desktop: reviewed=20 revlog=20 | phone: reviewed=20 revlog=20
+PASS #1: 10 phone + 10 desktop offline reviews merged -> 20 on both, none lost/double.
+
+conflict on one card: desktop=Again (earlier), phone=Easy (later)
+  sync P -> in-sync/normal
+  sync D -> in-sync/normal
+  sync P -> in-sync/normal
+  sync D -> in-sync/normal
+  observer sync -> FULL DOWNLOAD
+card X  desktop=(1, 4, 2) rl=2 | phone=(1, 4, 2) rl=2 | server(observer)=(1, 4, 2) rl=2
+PASS #2: same-card conflict converged to ONE winner on all 3 = Easy (later write); BOTH reviews kept in revlog (append-only).
+
+ALL SYNC TESTS PASSED (phone<->desktop two-way sync on the shared Rust engine).
+tools/speedrun/run_all_tests.sh: line 54: 91017 Terminated: 15          SYNC_USER1=test:test SYNC_BASE=/tmp/speedrun_test_syncbase SYNC_HOST=127.0.0.1 SYNC_PORT=8080 nohup cargo run -q -p anki-sync-server > /tmp/speedrun_sync_srv.log 2>&1
+
+──▶ Coverage map (informational)
+  (see coverage_map.py output)
+
+════════ SUMMARY ════════
+PASS  Rust score/feature tests
+PASS  Python engine test (MasteryForDeck)
+PASS  AI leakage assertion
+PASS  Memory calibration (ECE)
+PASS  Interleaving ablation
+PASS  Crash / zero-corruption (x20)
+PASS  50k-card speed benchmark
+PASS  Two-way sync + conflict
+─────────────────────────
+8 passed, 0 failed
