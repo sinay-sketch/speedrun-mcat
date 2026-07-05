@@ -48,6 +48,7 @@ Python test calling the engine: `pylib/tests/test_mastery.py`. **12 Rust unit te
 ## Build & run
 
 ### Desktop
+**Prebuilt installer:** [Releases ▸ v1.0-speedrun](https://github.com/sinay-sketch/speedrun-mcat/releases/tag/v1.0-speedrun) → the macOS `.dmg` (macOS 13+, Apple Silicon; ad-hoc signed, so right-click ▸ Open on first launch). Or build it yourself:
 ```bash
 just run                 # dev run
 just check               # fmt + lint + all tests (before submitting)
