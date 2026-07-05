@@ -1,0 +1,14 @@
+Interleaving ablation — pre-registered simulation (equal study time, spacing held constant)
+learners=400  concepts=24  trials/arm=480 (equal)  seed=7
+PRE-REGISTERED: interleaved narrows the recall−reworded gap vs blocked by d ≥ 0.3; blocked ≈ plain on pure recall.
+
+Arm            pure-recall   recall−reworded gap (transfer failure)
+  interleaved   0.845        0.322  (± 0.146)
+  blocked       0.836        0.446  (± 0.129)
+  plain         0.841        0.449  (± 0.135)
+
+PRIMARY  interleaved vs blocked, gap reduction: Cohen's d = 0.90  95% CI [0.75, 1.04]
+SECONDARY blocked vs plain, pure recall: Cohen's d = -0.04 (expected ≈ 0)
+
+RESULT: PREDICTION HELD — interleaving improved discrimination by d=0.90 (≥ 0.3), CI excludes 0. Keep the feature.
+Honest scope: simulated learner (no multi-week human data in a weekend); the mechanism affects discriminability, not the outcome directly, so the gap emerges. Spacing is held identical between interleaved and blocked, isolating within-session order.

@@ -26,7 +26,17 @@ outside the repo; the phone→desktop sync **recording** is submitted separately
 | 9a. Eval numbers + baseline comparison | `harness_live_run.txt`, `ai_report_live.json` |
 | 9b. Recording: phone review → appears on desktop after sync | *submitted separately (screen recording)* |
 
+## Final-submission evidence (Sat/Sun rubric areas)
+| Rubric area | Proof file(s) |
+|---|---|
+| Score honesty — memory model **calibrated** (ECE + reliability diagram, time split) | `calibration_output.txt` (Brier 0.133, log loss 0.407, **ECE 0.0048**); code `tools/speedrun/scoring/calibration.py` |
+| **No test-data leakage** (auto-asserted) | `leakage_output.txt` (held-out queries not corpus copies, all sets disjoint); code `tools/speedrun/ai/leakage.py` |
+| Learning-science feature tested by **ablation** (interleaving) | `interleaving_ablation_output.txt` (equal study time, spacing held constant; **d = 0.90, 95% CI [0.75, 1.04]**; blocked ≈ plain on recall); code `tools/speedrun/ablation/interleaving_ablation.py` + Rust feature `rslib/src/scheduler/interleave.rs` (3 tests) |
+
 ## Reproduce
 - AI harness: `OPENAI_API_KEY=… tools/speedrun/ai/.venv/bin/python tools/speedrun/ai/run_harness.py --gen-chunks 8` (offline parts need no key).
 - Sync test: start a fresh `anki-sync-server`, then `PYTHONPATH=out/pylib out/pyenv/bin/python tools/speedrun/sync_conflict_test.py`.
-- Rust score tests: `cargo test -p anki scheduler::mastery scheduler::performance`.
+- Leakage: `tools/speedrun/ai/.venv/bin/python tools/speedrun/ai/leakage.py`
+- Calibration: `tools/speedrun/ai/.venv/bin/python tools/speedrun/scoring/calibration.py`
+- Interleaving ablation: `tools/speedrun/ai/.venv/bin/python tools/speedrun/ablation/interleaving_ablation.py`
+- Rust score/feature tests: `cargo test -p anki scheduler::mastery scheduler::performance scheduler::interleave`.
