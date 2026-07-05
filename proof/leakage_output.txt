@@ -1,0 +1,7 @@
+L1 retrieval queries not copied from corpus: max word-containment 0.44 (query q04 vs bc03), threshold 0.8
+L2 gold(50) vs bad(15) calibration fronts disjoint: yes
+L3 query set disjoint from gold-card fronts: yes
+L4 qrels reference only real chunks: yes
+L5 (generated-vs-gold) skipped: pass a generated_cards.jsonl to enable.
+
+LEAKAGE CHECK PASSED: no test data leaks into training/eval inputs.

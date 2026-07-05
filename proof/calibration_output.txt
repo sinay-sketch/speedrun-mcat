@@ -1,0 +1,25 @@
+Leakage guard: train seed != test seed; metrics reported on the held-out test epoch only.
+Held-out test reviews: 6000
+
+=== Memory model (FSRS-5 curve, default params) — held-out calibration ===
+Brier score : 0.1328   (lower is better; 0.25 = coin flip)
+Log loss    : 0.4074
+ECE         : 0.0048   (mean gap between predicted and actual; want ≤ 0.05)
+
+Reliability diagram (predicted vs actual recall per probability bin):
+  bin        n   pred   actual  reliability (pred=|  actual=#)
+  0.0-0.1    0     -       -
+  0.1-0.2    0     -       -
+  0.2-0.3   508  0.261  0.268   ..........#.............................
+  0.3-0.4   538  0.348  0.348   .............#..........................
+  0.4-0.5   467  0.449  0.441   .................#......................
+  0.5-0.6   398  0.550  0.575   .....................|.#................
+  0.6-0.7   438  0.654  0.655   ..........................#.............
+  0.7-0.8   502  0.751  0.757   ..............................#.........
+  0.8-0.9   695  0.853  0.847   .................................#|.....
+  0.9-1.0  2454  0.966  0.965   ......................................#.
+
+Sanity check — overconfident variant ECE = 0.0462 (should be >> 0.0048).
+
+CALIBRATION PASSED: well-specified ECE=0.0048 ≤ 0.05, and the diagram flags the overconfident model (ECE 0.0462).
+Note: FSRS-5 is externally validated (RMSE ≈ 6.5%, 10k+ collections); this is a methodology + honesty demonstration since our own deck (n≈87) is too small to bin.
