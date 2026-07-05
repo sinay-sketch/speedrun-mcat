@@ -1,0 +1,22 @@
+MCAT coverage map — 46 cards in the starter deck
+
+By AAMC section:
+  [✓] C/P   16 cards   Chemical & Physical Foundations (gen chem, physics, org chem, biochem)
+  [—] CARS   0 cards   Critical Analysis & Reasoning (no content — 0% flashcardable)
+  [✓] B/B   18 cards   Biological & Biochemical Foundations (biology, biochem)
+  [✓] P/S   12 cards   Psychological, Social & Biological Foundations (psych, soc, biology)
+  -> 3/3 content sections have cards (CARS excluded: not flashcardable)
+
+By discipline (AAMC reference set):
+  [✓] Biochemistry        10 cards
+  [✓] Biology              9 cards
+  [✓] General Chemistry    5 cards
+  [✓] Organic Chemistry    5 cards
+  [✓] Physics              5 cards
+  [✓] Psychology           8 cards
+  [✓] Sociology            4 cards
+  -> 7/7 disciplines touched = 100% discipline coverage
+
+Readiness coverage line: ≥50% topic DEPTH covered AND ≥5 scored full-lengths.
+Breadth is good (7/7 disciplines), but 46 cards touch only a handful of the ~59 AAMC content categories, so per-topic DEPTH is thin.
+=> Readiness ABSTAINS regardless, on the hard gate: 0 scored full-lengths (< 5 required). You can't be 'ready' for topics you haven't been tested on. Honest, not a bug — this is the same give-up rule enforced in rslib readiness_for_deck.

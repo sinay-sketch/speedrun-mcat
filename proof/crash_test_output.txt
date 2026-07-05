@@ -1,0 +1,7 @@
+Crash / zero-corruption test — kill the engine mid-review, prove no corruption.
+Command: PYTHONPATH=out/pylib out/pyenv/bin/python tools/speedrun/crash_test.py 20
+
+seeded collection with 46 MCAT cards
+
+20/20 hard kills mid-review -> collection intact (SQLite integrity OK, 46 cards preserved, none lost or duplicated).
+CRASH TEST PASSED: zero corrupt collections.
