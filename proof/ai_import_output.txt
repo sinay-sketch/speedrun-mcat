@@ -1,0 +1,32 @@
+AI card import — wiring the harness into the live deck (authoring-time step)
+Command: PYTHONPATH=out/pylib OPENAI_API_KEY=… out/pyenv/bin/python \
+         tools/speedrun/ai/import_approved.py --gen-chunks 6
+
+  full-download shared collection -> download
+  generated 18, approved 18 (entailed AND tier >= T2)
+  deck: 46 -> 64 cards  (+18; 18 tagged ai::generated)
+  sync new cards up -> in-sync
+
+After sync, BOTH apps show 64 cards; the 18 AI cards appear as normal review cards
+(New column), scheduled by FSRS like any card, and tagged so they're distinguishable:
+
+  Q: What does glycolysis convert one molecule of glucose into?
+  A: two molecules of pyruvate
+  tags: ['ai::generated', 'source::bc01', 'tier::T3']
+
+  Q: What is the net yield of glycolysis per molecule of glucose?
+  A: 2 ATP and 2 NADH
+  tags: ['ai::generated', 'source::bc01', 'tier::T3']
+
+  Q: What is the rate-limiting enzyme in glycolysis?
+  A: Phosphofructokinase-1 (PFK-1)
+  tags: ['ai::generated', 'source::bc01', 'tier::T3']
+
+Phone home after sync: "MCAT · Speedrun Starter — 64 cards", New 18 (the AI cards),
+Learn 14, Due 0. (phone_with_ai_cards.png in friday_proof/.)
+
+Flow: harness generates -> vets (entailed by named source AND judged usable) ->
+import_approved.py adds the passers via col.add_note, tagged -> sync -> both apps.
+Every AI card that reaches a student passed the source-entailment + judge gate first;
+the app still runs "AI off" because generation happens here, at authoring time, not
+during review.

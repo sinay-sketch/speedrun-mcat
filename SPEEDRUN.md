@@ -76,6 +76,16 @@ OPENAI_API_KEY=… tools/speedrun/ai/.venv/bin/python tools/speedrun/ai/run_harn
 The app runs fully **with AI off** — scores are pure-Rust/FSRS; the AI-off card path is the
 50 pre-authored gold cards + BM25 retrieval.
 
+To actually put vetted AI cards into the deck (authoring-time; run by the maintainer, never
+by the app during review):
+```bash
+OPENAI_API_KEY=… PYTHONPATH=out/pylib out/pyenv/bin/python tools/speedrun/ai/import_approved.py --gen-chunks 6
+```
+It generates → keeps only cards **entailed by their named source AND judged ≥ T2** → adds them
+via `col.add_note` tagged `ai::generated` / `source::…` / `tier::…` → syncs up, so both apps
+show them as normal review cards you can tell apart. Every AI card a student sees passed the
+gate first.
+
 ---
 
 ## The three scores (each ranged, each with a give-up rule)
